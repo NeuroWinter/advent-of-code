@@ -68,7 +68,52 @@ defmodule Day4 do
     IO.inspect(accessible_count, label: "Accessible positions")
     accessible_count
   end
+
+  defp part_2_algo(input, count)  do
+    accessible_positions = get_accessible_positions(input)
+    if length(accessible_positions) == 0 do
+      count
+    else
+      new_input =
+      Enum.reduce(accessible_positions, input, fn {x, y}, acc ->
+        row = Enum.at(acc, x)
+        new_row = List.replace_at(row, y, ".")
+        List.replace_at(acc, x, new_row)
+      end)
+      part_2_algo(new_input, count + length(accessible_positions))
+    end
+  end
+
+  defp get_accessible_positions(input) do
+    rows  = length(input)
+    Enum.reduce(0..(rows - 1), [], fn i, acc ->
+      line      = Enum.at(input, i)
+      line_len  = length(line)
+      Enum.reduce(0..(line_len - 1), acc, fn j, acc ->
+        char = Enum.at(line, j)
+        total_for_position =
+          get_adjacent_positions(i, j)
+          |> filter_positions(rows, line_len)
+          |> get_total_rolls_of_paper_from_positions(input)
+        if char == "@" and total_for_position < 4 do
+          [{i, j} | acc]
+        else
+          acc
+        end
+      end)
+    end)
+  end
+
+  def main_part2 do
+    # It think this is the same as part 1 but I need to remove each one that is < 4
+    # And count the number of times that happens untill there are no more <4 left
+    input = read_input(@input_file)
+    part_2_algo(input, 0)
+    |> IO.inspect(label: "count to get to 0")
+
+    # Now I need to loop this until there are no more <4 left
+  end
 end
 
 
-Day4.main_part1()
+Day4.main_part2()
